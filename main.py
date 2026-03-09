@@ -1,59 +1,45 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
 load_dotenv()
 
-# Configure Streamlit page
-st.set_page_config(
-    page_title="Gemini AI Chatbot",
-    page_icon="🤖",
-    layout="centered",
-)
+st.set_page_config(page_title="Gemini AI Chatbot", page_icon="🤖")
 
-# Get API Key
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Configure Gemini
-genai.configure(api_key=GOOGLE_API_KEY)
+if not GOOGLE_API_KEY:
+    st.error("API key missing")
+    st.stop()
 
-# Load Gemini model
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+client = genai.Client(api_key=GOOGLE_API_KEY)
 
-genai.configure(api_key=GOOGLE_API_KEY)
+st.title("🤖 Gemini Chatbot")
 
-model = genai.GenerativeModel("models/gemini-1.5-flash")
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# Initialize chat session
-if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
+for msg in st.session_state.history:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-# Title
-st.title("🤖 Gemini Pro - ChatBot")
+prompt = st.chat_input("Ask Gemini...")
 
-# Function to convert Gemini role to Streamlit role
-def translate_role_for_streamlit(role):
-    if role == "model":
-        return "assistant"
-    return role
+if prompt:
+    st.session_state.history.append({"role": "user", "content": prompt})
 
-# Display chat history
-for message in st.session_state.chat_session.history:
-    with st.chat_message(translate_role_for_streamlit(message.role)):
-        st.markdown(message.parts[0].text)
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-# Chat input
-user_prompt = st.chat_input("Ask Gemini...")
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt
+    )
 
-if user_prompt:
-    # Show user message
-    st.chat_message("user").markdown(user_prompt)
+    reply = response.text
 
-    # Send message to Gemini
-    response = st.session_state.chat_session.send_message(user_prompt)
-
-    # Show Gemini response
     with st.chat_message("assistant"):
-        st.markdown(response.text)
+        st.markdown(reply)
+
+    st.session_state.history.append({"role": "assistant", "content": reply})
