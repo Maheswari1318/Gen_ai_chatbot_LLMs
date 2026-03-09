@@ -19,8 +19,8 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Set up Google Gemini-Pro AI model
 gen_ai.configure(api_key=GOOGLE_API_KEY)
-model = gen_ai.GenerativeModel('gemini-pro')
-
+model = genai.GenerativeModel("gemini-1.5-flash")
+chat = model.start_chat(history=[])
 
 # Function to translate roles between Gemini-Pro and Streamlit terminology
 def translate_role_for_streamlit(user_role):
