@@ -25,6 +25,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
 model = genai.GenerativeModel("models/gemini-1.5-flash")
+
 # Initialize chat session
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
